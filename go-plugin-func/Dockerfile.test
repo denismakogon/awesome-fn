@@ -1,0 +1,7 @@
+FROM golang:1.11.1-stretch
+
+ADD . /go/src/func
+WORKDIR /go/src/func/sample
+RUN go build -buildmode=plugin -o linux_invoker.so main.go
+WORKDIR /go/src/func
+ENTRYPOINT ["go", "test", "-v", "./..."]
