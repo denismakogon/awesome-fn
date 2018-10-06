@@ -2,17 +2,24 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
+	"plugin"
 
 	"github.com/fnproject/fdk-go"
 	"github.com/google/uuid"
 )
 
 const LookUpName string = "Invoker"
+var tr = &http.Transport{
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}
+var client = &http.Client{Transport: tr}
+
 
 func withError(ctx context.Context, in io.Reader, out io.Writer) {
 	res, err := myHandler(ctx, in)
@@ -26,9 +33,24 @@ func withError(ctx context.Context, in io.Reader, out io.Writer) {
 	fdk.WriteStatus(out, http.StatusOK)
 }
 
-func myHandler(ctx context.Context, in io.Reader) ([]byte, error) {
+type SharedObjectURL struct {
+	URL string `json:"url"`
+}
 
-	libPath, err := ReadSharedFile(ctx, in, uuid.New().String())
+func myHandler(ctx context.Context, in io.Reader) ([]byte, error) {
+	var so SharedObjectURL
+	err := json.NewDecoder(in).Decode(&so)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Get(so.URL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	libPath, err := ReadSharedFile(ctx, resp.Body, uuid.New().String())
 	if err != nil {
 		return nil, err
 	}
@@ -40,22 +62,14 @@ func myHandler(ctx context.Context, in io.Reader) ([]byte, error) {
 	} else {
 		log.Println("file exists and i can open it")
 	}
-	cmd := exec.CommandContext(ctx, "file", libPath)
-	b, err := cmd.Output()
+	pl, err := plugin.Open(libPath)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(string(b))
-	//
-	//pl, err := plugin.Open(libPath)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//log.Println("plugin loaded")
-	//
-	//return Invoke(ctx, pl)
-	return nil, err
+
+	log.Println("plugin loaded")
+
+	return Invoke(ctx, pl)
 }
 
 func main() {

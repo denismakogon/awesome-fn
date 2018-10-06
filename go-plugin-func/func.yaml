@@ -1,6 +1,6 @@
 schema_version: 20180708
 name: go-plugin-func
-version: 0.0.52
+version: 0.0.56
 runtime: go
 build_image: golang:1.11.1-stretch
 run_image: debian:stretch
