@@ -28,13 +28,7 @@ func ReadSharedFile(_ context.Context, content io.Reader, identifier string) (st
 	fileName := sharedFile.Name()
 	log.Println(fmt.Sprintf("temp file %s created", fileName))
 
-
-	n, err := io.Copy(sharedFile, content)
-	if err != nil {
-		return "", err
-	}
-
-	log.Println(fmt.Sprintf("%v bytes was written to a file", n))
+	_, err = io.Copy(sharedFile, content)
 	return fileName, err
 }
 

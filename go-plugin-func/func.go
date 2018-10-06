@@ -15,11 +15,11 @@ import (
 )
 
 const LookUpName string = "Invoker"
+
 var tr = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 }
 var client = &http.Client{Transport: tr}
-
 
 func withError(ctx context.Context, in io.Reader, out io.Writer) {
 	res, err := myHandler(ctx, in)
@@ -56,12 +56,7 @@ func myHandler(ctx context.Context, in io.Reader) ([]byte, error) {
 	}
 
 	defer os.Remove(libPath)
-	_, err = os.Open(libPath)
-	if err != nil {
-		log.Println(err.Error())
-	} else {
-		log.Println("file exists and i can open it")
-	}
+
 	pl, err := plugin.Open(libPath)
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"plugin"
 	"testing"
 
 	"github.com/google/uuid"
@@ -18,12 +19,17 @@ func TestReadSharedAndInvoke(t *testing.T) {
 			t.Fatal(err.Error())
 		}
 		sharedLibPrefix := uuid.New().String()
-		libPath, pl, err := ReadSharedFile(
+		libPath, err := ReadSharedFile(
 			ctx, sharedLib, sharedLibPrefix)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
 		defer os.Remove(libPath)
+
+		pl, err := plugin.Open(libPath)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 
 		res, err := Invoke(ctx, pl)
 		if err != nil {
