@@ -54,9 +54,18 @@ func myHandler(ctx context.Context, in io.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer os.Remove(libPath)
 
+	err = os.Chmod(libPath, 0755)
+	if err != nil {
+		return nil, err
+	}
+	st, err := os.Stat(libPath)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("%v access rights: %v\n", libPath, st.Mode())
 	pl, err := plugin.Open(libPath)
 	if err != nil {
 		return nil, err
