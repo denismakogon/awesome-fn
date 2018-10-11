@@ -1,0 +1,14 @@
+schema_version: 20180708
+name: azure
+version: 0.0.1
+runtime: docker
+entrypoint: ./func
+format: http-stream
+memory: 512
+config:
+  AZURE_FUNCTION: HttpTriggerJS
+  FDK_DEBUG: "1"
+triggers:
+- name: azure-function
+  type: http
+  source: /azure
